@@ -615,7 +615,7 @@ function dind::configure-kubectl {
       host="[::1]"
     fi
   fi
-  "${kubectl}" config set-cluster dind --server="http://${host}:${APISERVER_PORT}" --insecure-skip-tls-verify=true
+  "${kubectl}" config set-cluster dind --server="$(docker-machine ip)" --insecure-skip-tls-verify=true
   "${kubectl}" config set-context dind --cluster=dind
   "${kubectl}" config use-context dind
 }
@@ -690,7 +690,7 @@ function dind::init {
   if [[ ${IP_MODE} = "ipv6" ]]; then
       local_host="[::1]"
   fi
-  local container_id=$(dind::run kube-master "${kube_master_ip}" 1 ${local_host}:${APISERVER_PORT}:8080 ${master_opts[@]+"${master_opts[@]}"})
+  local container_id=$(dind::run kube-master "${kube_master_ip}" 1 ${APISERVER_PORT}:8080 ${master_opts[@]+"${master_opts[@]}"})
   # FIXME: I tried using custom tokens with 'kubeadm ex token create' but join failed with:
   # 'failed to parse response as JWS object [square/go-jose: compact JWS format must have three parts]'
   # So we just pick the line from 'kubeadm init' output
@@ -854,7 +854,7 @@ function dind::wait-for-ready {
   if [[ ${IP_MODE} = "ipv6" ]]; then
       local_host="[::1]"
   fi
-  dind::step "Access dashboard at:" "http://${local_host}:${APISERVER_PORT}/ui"
+  dind::step "Access dashboard at:" "$(kubectl config view | grep -o "http://.*$")/ui"
 }
 
 function dind::up {
